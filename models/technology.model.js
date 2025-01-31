@@ -1,9 +1,16 @@
 const mongoose = require("mongoose");
 
+const contentSchema = mongoose.Schema({
+    title: String,
+    shortheading: String,
+    type:String,
+    content:String
+})
+
 const topicSchema = mongoose.Schema({
     title:String,
     shortheading:String,
-    contents:String
+    contents:[contentSchema]
 })
 
 const conceptSchema = mongoose.Schema({
@@ -21,5 +28,3 @@ const technologySchema = mongoose.Schema({
 
 const Technology = mongoose.model("Technology",technologySchema)
 module.exports = Technology
-
-

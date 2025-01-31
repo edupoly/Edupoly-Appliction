@@ -166,6 +166,7 @@ app.delete("/deleteconcept/:tid/:cid",async(req,res)=>{
 
 app.get("/topicdetails/:tid/:cid",async(req,res)=>{
     try {
+        console.log("hiiiiiiiiiiiiiiiii")
        var topic = await Technology.findOne(
         {_id:req.params.tid,"concepts._id":req.params.cid},
         { "concepts.$": 1 }
@@ -176,7 +177,6 @@ app.get("/topicdetails/:tid/:cid",async(req,res)=>{
         console.log("error in topic")
     }
 })
-
 
 
 app.put("/addtopic/:tid/:cid",async(req,res)=>{
@@ -200,46 +200,326 @@ app.put("/addtopic/:tid/:cid",async(req,res)=>{
 })
 
 
-app.get("/gettopicdetails/:tid/:cid/:toid",async(req,res)=>{
-     try {
-      var topic =  await Technology.findOne(
-        {_id:req.params.tid,"concepts._id":req.params.cid,"concepts.topics._id":req.params.toid},
-        {"concepts.topics.$":1}
-      )
-      res.send(topic)
-     } catch (error) {
-        res.json({msg:"server error"})
-     }
-})
+// app.put("/addcontent/:tid/:cid/:topicId", async (req, res) => {
+//     try {
+//         console.log("Request body:", req.body);
+//         const newContent = { ...req.body };
+//         console.log("New content:", newContent);
+
+//         const updatedDocument = await Technology.findOneAndUpdate(
+//             {
+//                 _id: req.params.tid,
+//                 "concepts._id": req.params.cid,
+//                 "concepts.$.topics._id": req.params.topicId
+//             },
+//             { $push: { "concepts.$[concept].topics.$[topic].contents": newContent } },
+//             {
+//                 new: true,
+//                 arrayFilters: [
+//                     { "concept._id": req.params.cid },
+//                     { "topic._id": req.params.topicId }
+//                 ]
+//             }
+//         );
+
+//         console.log("Updated document:", updatedDocument);
+//         if (!updatedDocument) {
+//             return res.json({ msg: "Content could not be added" });
+//         }
+
+//         res.json({ msg: "Content added successfully", updatedDocument });
+//     } catch (error) {
+//         res.json({ msg: "Server error", error });
+//     }
+// });
 
 
 
-app.put("/updatetopic/:tid/:cid/:toid",async(req,res)=>{
+
+app.put("/addcontent/:tid/:cid/:topicId", async (req, res) => {
     try {
-        console.log(req.body)
+        console.log("Request body:", req.body);
+        console.log("params",req.params)
+        const newContent = { ...req.body };
+        const updatedDocument = await Technology.findOneAndUpdate(
+            {
+                _id: req.params.tid,
+                "concepts._id": req.params.cid,
+                "concepts.topics._id": req.params.topicId
+            },
+            {
+                $push: { "concepts.$[concept].topics.$[topic].contents": newContent }
+            },
+            {
+                new: true,
+                arrayFilters: [
+                    { "concept._id": req.params.cid },
+                    { "topic._id": req.params.topicId }
+                ]
+            }
+        );
+
+        if (!updatedDocument) {
+            return res.json({ msg: "Content could not be added" });
+        }
+
+        res.json({ msg: "Content added successfully", updatedDocument });
+    } catch (error) {
+        console.error("Error adding content:", error);
+        res.json({ msg: "Server error", error });
+    }
+});
+
+
+
+
+app.put("/addcontent/:tid/:cid/:topicId", async (req, res) => {
+    try {
+        console.log("Request Body:", req.body);
+
+        const { tid, cid, topicId } = req.params;
+        const contentObj = { ...req.body };
+
+
+      
         const updatedTopic = await Technology.findOneAndUpdate(
-            {_id: req.params.tid,"concepts._id": req.params.cid,"concepts.topics._id": req.params.toid,},
+            {
+                _id: tid, 
+                "concepts._id": cid,
+                "concepts.topics._id": topicId 
+            },
+            {
+                $push: { "concepts.$[concept].topics.$[topic].contents": contentObj } 
+            },
+            {
+                arrayFilters: [
+                    { "concept._id": cid }, 
+                    { "topic._id": topicId } 
+                ],
+                new: true
+            }
+        );
+
+        if (!updatedTopic) {
+            return res.json({ msg: "Content not added. Topic not found." });
+        }
+
+      
+        res.json({ msg: "Content added successfully", updatedTopic });
+    } catch (error) {
+        console.error("Error:", error);
+        res.json({ msg: "Server error", error: error.message });
+    }
+});
+
+
+
+// app.put("/addcontent/:tid/:cid/:topicId", async (req, res) => {
+//     try {
+//         console.log("Request Body:", req.body);
+
+//         const { tid, cid, topicId } = req.params;
+//         const contentObj = { ...req.body };
+
+//         const updatedTopic = await Technology.findOneAndUpdate(
+//             {
+//                 _id: tid,
+//                 "concepts._id": cid,
+//                 "concepts.topics._id": topicId
+//             },
+//             {
+//                 $push: { "concepts.$[concept].topics.$[topic].contents": contentObj }
+//             },
+//             {
+//                 arrayFilters: [
+//                     { "concept._id": cid },
+//                     { "topic._id": topicId }
+//                 ],
+//                 new: true
+//             }
+//         );
+
+//         if (!updatedTopic) {
+//             return res.json({ msg: "Content not added" });
+//         }
+
+//         res.json({ msg: "Content added successfully" });
+//     } catch (error) {
+//         console.error("Error:", error);
+//         res.json({ msg: "Server error", error });
+//     }
+// });
+
+
+
+
+
+// app.get("/gettopicdetails/:tid/:cid/:topicId",async(req,res)=>{
+//      try {
+//         console.log("hiii")
+//       var topic =  await Technology.findOne(
+//         {_id:req.params.tid,"concepts._id":req.params.cid,"concepts.topics._id":req.params.topicId},
+//         {"concepts.topics.$":1}
+//       )
+//       res.send(topic)
+//      } catch (error) {
+//         res.json({msg:"server error"})
+//      }
+// })
+
+
+app.get("/gettopicdetails/:tid/:cid/:topicId/:contentId", async (req, res) => {
+    try {
+        const { tid, cid, topicId, contentId } = req.params;
+        console.log(req.params);
+
+        const topic = await Technology.findOne(
+            {
+                _id: tid,
+                "concepts._id": cid,
+                "concepts.topics._id": topicId,
+            },
+            {
+                "concepts.$": 1,
+            }
+        );
+
+        if (!topic || !topic.concepts?.[0]?.topics) {
+            return res.json({ msg: "Content not found" });
+        }
+
+        const topics = topic.concepts[0].topics;
+        const topicDetails = topics.find((t) => t._id.toString() === topicId);
+
+        if (!topicDetails || !topicDetails.contents) {
+            return res.json({ msg: "Content not found" });
+        }
+
+        const content = topicDetails.contents.find(
+            (c) => c._id.toString() === contentId
+        );
+
+        if (!content) {
+            return res.json({ msg: "Content not found" });
+        }
+
+        res.json(content);
+    } catch (error) {
+        console.error("Error:", error);
+        res.json({ msg: "Server error", error });
+    }
+});
+
+
+
+
+
+// app.put("/updatetopic/:tid/:cid/:toid",async(req,res)=>{
+//     try {
+//         console.log(req.body)
+//         const updatedTopic = await Technology.findOneAndUpdate(
+//             {_id: req.params.tid,"concepts._id": req.params.cid,"concepts.topics._id": req.params.toid,},
+//             {
+//                 $set: {
+//                     "concepts.$.topics.$[topic].title": req.body.title,
+//                     "concepts.$.topics.$[topic].shortheading": req.body.shortheading,
+//                     "concepts.$.topics.$[topic].contents": req.body.contents,
+//                 },
+//             },
+//             {
+//                 arrayFilters: [{ "topic._id": req.params.toid }],
+//                 new: true,
+//             }
+//         );
+//         if(!updatedTopic){
+//             return res.json({msg:"topic is not updated"})
+//         }
+//         res.json({msg:"topic updated succesfully"})
+
+//     } catch (error) {
+//         res.json({msg:"server error"})
+//     }
+// })
+
+
+// app.put("/updatetopic/:tid/:cid/:toid/:contentId", async (req, res) => {
+//     try {
+//         const { tid, cid, toid,contentId } = req.params;
+//         const updateData = req.body;
+
+//         console.log("update topicccccc")
+//         console.log(req.body)
+//         // const updatedDoc = await Technology.findOneAndUpdate(
+//         //     {
+//         //         _id: tid,
+//         //         "concepts._id": cid,
+//         //     },
+//         //     {
+//         //         $set: { "concepts.$[concept].topics.$[topic].contents.$[content]": updateData },
+//         //     },
+//         //     {
+//         //         arrayFilters: [
+//         //             { "concept._id": cid },
+//         //             { "topic.contents._id": contentId },
+//         //             { "content._id": contentId },
+//         //         ],
+//         //         new: true,
+//         //     }
+//         // );
+
+//         // if (!updatedDoc) {
+//         //     return res.json({ msg: "Content not updated" });
+//         // }
+
+//         // res.json({ msg: "Content updated successfully", updatedDoc });
+//     } catch (error) {
+//         console.error("Error:", error);
+//         res.json({ msg: "Server error", error });
+//     }
+// });
+
+
+app.put("/updatetopic/:tid/:cid/:topicId/:contentId", async (req, res) => {
+    try {
+        const { tid, cid, topicId, contentId } = req.params; 
+        console.log(tid,cid,topicId,contentId)
+        const updateData = req.body; 
+
+        console.log("Request to update content:");
+        console.log(updateData);
+
+        const updatedDoc = await Technology.findOneAndUpdate(
+            {
+                _id: tid, 
+                "concepts._id": cid,
+            },
             {
                 $set: {
-                    "concepts.$.topics.$[topic].title": req.body.title,
-                    "concepts.$.topics.$[topic].shortheading": req.body.shortheading,
-                    "concepts.$.topics.$[topic].contents": req.body.contents,
+                    "concepts.$[concept].topics.$[topic].contents.$[content]": updateData, 
                 },
             },
             {
-                arrayFilters: [{ "topic._id": req.params.toid }],
+                arrayFilters: [
+                    { "concept._id": cid }, 
+                    { "topic._id": topicId }, 
+                    { "content._id": contentId }, 
+                ],
                 new: true,
             }
         );
-        if(!updatedTopic){
-            return res.json({msg:"topic is not updated"})
-        }
-        res.json({msg:"topic updated succesfully"})
 
+        if (!updatedDoc) {
+            return res.json({ msg: "Content not updated. No matching document found." });
+        }
+
+        res.json({ msg: "Content updated successfully", updatedDoc });
     } catch (error) {
-        res.json({msg:"server error"})
+        console.error("Error updating content:", error);
+        res.json({ msg: "Server error", error });
     }
-})
+});
+
+
 
 
 
