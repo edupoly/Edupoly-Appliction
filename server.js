@@ -11,7 +11,13 @@ app.use(cors())
 app.use(bodyparser.urlencoded({extended:false}))
 app.use(bodyparser.json())
 
-mongoose.connect("mongodb+srv://sai:sai987654321@atlascluster.ym1yuin.mongodb.net/edupoly?retryWrites=true&w=majority&appName=AtlasCluster")
+mongoose.connect(
+    // "mongodb+srv://lakshman:ramu123@cluster0.mmeuw.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+
+    // "mongodb+srv://sai:sai987654321@atlascluster.ym1yuin.mongodb.net/edupoly?retryWrites=true&w=majority&appName=AtlasCluster"
+    "mongodb+srv://infoedupoly:edupoly83@cluster0.eitlw5l.mongodb.net/Edupoly?retryWrites=true&w=majority&appName=Cluster0"
+)
+    
 
 // technology routes
 
@@ -442,41 +448,95 @@ app.get("/gettopicdetails/:tid/:cid/:topicId/:contentId", async (req, res) => {
 // })
 
 
-// app.put("/updatetopic/:tid/:cid/:toid/:contentId", async (req, res) => {
+// app.put("/edittopic/:tid/:cid/:topicid", async (req, res) => {
 //     try {
-//         const { tid, cid, toid,contentId } = req.params;
-//         const updateData = req.body;
+//         console.log("Updating topic...");
+//         const { tid, cid, topicid } = req.params;
+//         const updateData = req.body; // Contains updated title & shortheading
 
-//         console.log("update topicccccc")
-//         console.log(req.body)
-//         // const updatedDoc = await Technology.findOneAndUpdate(
-//         //     {
-//         //         _id: tid,
-//         //         "concepts._id": cid,
-//         //     },
-//         //     {
-//         //         $set: { "concepts.$[concept].topics.$[topic].contents.$[content]": updateData },
-//         //     },
-//         //     {
-//         //         arrayFilters: [
-//         //             { "concept._id": cid },
-//         //             { "topic.contents._id": contentId },
-//         //             { "content._id": contentId },
-//         //         ],
-//         //         new: true,
-//         //     }
-//         // );
+//         console.log("Received Data:", updateData);
 
-//         // if (!updatedDoc) {
-//         //     return res.json({ msg: "Content not updated" });
-//         // }
+//         // Find and update the correct topic inside the Technology model
+//         const updatedDoc = await Technology.findOneAndUpdate(
+//             {
+//                 _id: tid,
+//                 "concepts._id": cid,
+//                 "concepts.topics._id": topicid, // Ensure correct topic lookup
+//             },
+//             {
+//                 $set: {
+//                     "concepts.$.topics.$[topic]": updateData,
+//                 //     "concepts.$.topics.$[topic].title": updateData.title,
+//                 //     "concepts.$.topics.$[topic].shortheading": updateData.shortheading,
+//                 },
+//             },{
 
-//         // res.json({ msg: "Content updated successfully", updatedDoc });
+//                 // arrayFilters: [
+//                 //     { "concept._id": cid }, 
+//                 //     { "topic._id": topicid }, 
+                    
+//                 // ],
+//                 new: true,
+//             }
+//         );
+
+//         if (!updatedDoc) {
+//             return res.json({ msg: "Topic not found or not updated" });
+//         }
+
+//         res.json({ msg: "Topic updated successfully", updatedDoc });
 //     } catch (error) {
-//         console.error("Error:", error);
+//         console.error("Error updating topic:", error);
 //         res.json({ msg: "Server error", error });
 //     }
 // });
+
+
+
+app.put("/edittopic/:tid/:cid/:topicid", async (req, res) => {
+    try {
+        console.log("Updating topic...");
+        const { tid, cid, topicid } = req.params;
+        const updateData = req.body; // Updated topic data
+
+        console.log("Received Data:", updateData);
+
+        // Find and update the correct topic
+        const updatedDoc = await Technology.findOneAndUpdate(
+            {
+                _id: tid,
+                "concepts._id": cid, // Find correct concept
+                "concepts.topics._id": topicid,
+            },
+            {
+                $set: {
+                    "concepts.$[c].topics.$[t]": updateData,
+                    // "concepts.$[c].topics.$[t].shortheading": updateData.shortheading,
+                },
+            },
+            {
+                arrayFilters: [
+                    { "c._id": cid },  // Match correct concept
+                    { "t._id": topicid } // Match correct topic
+                ],
+                new: true,
+            }
+        );
+
+        if (!updatedDoc) {
+            return res.status(404).json({ msg: "Topic not found or not updated" });
+        }
+
+        res.json({ msg: "Topic updated successfully", updatedDoc });
+    } catch (error) {
+        console.error("Error updating topic:", error);
+        res.status(500).json({ msg: "Server error", error });
+    }
+});
+
+
+
+
 
 
 app.put("/updatetopic/:tid/:cid/:topicId/:contentId", async (req, res) => {
@@ -519,12 +579,44 @@ app.put("/updatetopic/:tid/:cid/:topicId/:contentId", async (req, res) => {
     }
 });
 
+//DELETE CONTENT
+app.delete("/deletecontent/:tid/:cid/:topicId/:contentid",async(req,res)=>{
+    console.log(req.params)
+    try {
+        console.log("hi")
+        const{tid,cid,topicId,contentid}=req.params
+       var upcontent =  await Technology.findOneAndUpdate(
+        
+            { 
+                _id:tid,
+                "concepts._id":cid ,
+                "concepts.topics._id":topicId ,
+                // "concepts.topics._id.contents._id": req.params.contentid
+            
+
+            },
+            { $pull: {"concepts.$[concept].topics.$[topic].contents":{ _id:contentid}}},
+            {
+                arrayFilters:[
+                    {'concept._id':cid},{"topic._id":topicId},
+                ],
+                new:true}
+        )
+        if(!upcontent){
+            return res.json({msg:"content not deleted"})
+        }
+        res.json({msg:"topic deleted succesfully"})
+    } catch (error) {
+        res.json({msg:"server error"})
+    }
+})
 
 
 
 
 app.delete("/deletetopic/:tid/:cid/:toid",async(req,res)=>{
     try {
+       
        var topic =  await Technology.findOneAndUpdate(
             { _id:req.params.tid,"concepts._id":req.params.cid },
             { $pull: {"concepts.$.topics":{ _id: req.params.toid}}},
