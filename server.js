@@ -510,17 +510,11 @@ app.put("/edittopic/:tid/:cid/:topicid", async (req, res) => {
             },
             {
                 $set: {
-                    "concepts.$[c].topics.$[t]": updateData,
-                    // "concepts.$[c].topics.$[t].shortheading": updateData.shortheading,
+                    "concepts.$.topics.$.shortheading":updateData.shortheading,
+                    "concepts.$.topics.$.description":updateData.description
                 },
-            },
-            {
-                arrayFilters: [
-                    { "c._id": cid },  // Match correct concept
-                    { "t._id": topicid } // Match correct topic
-                ],
-                new: true,
             }
+            
         );
 
         if (!updatedDoc) {
