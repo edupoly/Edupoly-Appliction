@@ -510,9 +510,13 @@ app.put("/edittopic/:tid/:cid/:topicid", async (req, res) => {
             },
             {
                 $set: {
-                    "concepts.$.topics.$.shortheading":updateData.shortheading,
-                    "concepts.$.topics.$.description":updateData.description
+                    "concepts.$[].topics.$[t].shortheading":updateData.shortheading,
+                    "concepts.$[].topics.$[t].description":updateData.description
                 },
+            },
+            {
+                arrayFilters:[{"t._id":topicid}],
+                new:true
             }
             
         );
